@@ -16,11 +16,12 @@ char *ft_newline(t_list buffer, int fd)
             return NULL;
         
         char_read = read(fd, cutline, BUFFER_SIZE);
-        if(char_read <= 0)
+        if(char_read < 0)
             free(cutline);
             return NULL;
         cutline[char_read] = '\0';
         linefull = ft_strjoin(linefull, cutline);
+		free(cutline);
     }
     return(linefull);
 }
@@ -28,7 +29,7 @@ char *ft_newline(t_list buffer, int fd)
 
 char *get_next_line(int fd)
 {   
-    static s_list buffer;
+    static s_list *buffer;
     char *line;
     line = NULL;
     if(fd < 0 || BUFFER_SIZE <= 0 || read(fd, &buffer, 0) < 0)
@@ -37,13 +38,13 @@ char *get_next_line(int fd)
     return (line);
 }
 
-// int main(void)
-// {
-//     char *line;
-//     int fd;
+int main(void)
+{
+    char *line;
+    int fd;
 
-//     fd = open("arquivo.txt", O_RDONLY);
-//     line = get_next_line(fd);
-//     free(line);
-//     printf("%s\n", line);
-// }
+    fd = open("arquivo.txt", O_RDONLY);
+    line = get_next_line(fd);
+    free(line);
+    printf("%s\n", line);
+}

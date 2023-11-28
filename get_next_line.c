@@ -1,13 +1,20 @@
 #include "get_next_line.h"
 
-char *ft_dropline(t_list **buffer, int totalchars)
+char *ft_dropline(t_list **buffer)
 {
     int len;
     int i;
     char *formline;
     t_list *temp;
     
-    formline = malloc(totalchars + 1);
+    len = 0;
+    temp = (*buffer);
+    while (temp)
+    {
+        len++;
+        temp = temp -> next;
+    }
+    formline = malloc(len + 1);
     if(!formline)
         return (NULL);
     i = 0;
@@ -26,7 +33,7 @@ char *ft_dropline(t_list **buffer, int totalchars)
 
 
 
-int ft_joinlists(t_list **list, char new_char)
+void ft_joinlists(t_list **list, char new_char)
 {
     t_list *new_node;
     t_list *last_node;
@@ -34,7 +41,7 @@ int ft_joinlists(t_list **list, char new_char)
     last_node = ft_lstlast(*list);
     new_node = malloc(sizeof(t_list));
     if(!new_node)
-        return 0;
+        return ;
     if(!last_node)
         *list = new_node;
     else
@@ -43,60 +50,47 @@ int ft_joinlists(t_list **list, char new_char)
     }
     new_node->c = new_char;
     new_node->next = NULL;
-    return(1);
 }
 
-int ft_readandropping(t_list **list, int fd)
+void ft_readandropping(t_list **list, int fd)
 {
     char buffer[BUFFER_SIZE + 1];
     int bytes_read;
-    int total_characters = 0;  // Adicione esta variável
+    int i;
 
     bytes_read = 1;
-    while ((bytes_read = read(fd, buffer, BUFFER_SIZE) > 0))
-    {
-        int i = 0;
-        while (buffer[i] && i < BUFFER_SIZE)
+    while (bytes_read > 0)
+    {   
+        bytes_read = read(fd, buffer, BUFFER_SIZE);
+        if(bytes_read < 0)
         {
-            total_characters += ft_joinlists(list, buffer[i]);
-            if(total_characters == 0)
+            return ;
+        }
+        i = 1;
+        while (buffer[i] && i <= BUFFER_SIZE)
+        {
+            ft_joinlists(list, buffer[i]);
+            if(buffer[i] == '\n')
             {
-                return 0;
+                printf("Ele encontrou o barra aqui: %i\n", i);
+                return ;
             }
-            if (buffer[i] == '\n')
-            {   
-                return 1;
-            }
-            printf("%i\n", total_characters);
+            printf("%i\n", i);
             i++;
         }
-        
     }
-    if (bytes_read < 0)
-    {
-        return 0;
-    }
-    return(total_characters);
 }
 
-
 char *get_next_line(int fd)
-{
+{   
     static t_list *buffer;
     char *line;
-    int totalchars;
-
     line = NULL;
-    if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, &buffer, 0) < 0)
-        return NULL;
-
-    totalchars = ft_readandropping(&buffer, fd);
-    if (totalchars > 0)
-    {
-        line = ft_dropline(&buffer, totalchars);
-        free_list(buffer);
-    }
-    return line;
+    if(fd < 0 || BUFFER_SIZE <= 0 || read(fd, &buffer, 0) < 0)
+        return (NULL);
+    ft_readandropping(&buffer, fd);
+    line = ft_dropline(&buffer);
+    return (line);
 }
 
 int main(void)

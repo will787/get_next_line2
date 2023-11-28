@@ -19,9 +19,9 @@ typedef struct s_list{
 #include <string.h>
 
 char    *get_next_line(int fd);
-char *ft_dropline(t_list **buffer, int totalchars);
+char *ft_dropline(t_list **buffer);
 t_list	*ft_lstlast(t_list *lst);
-int ft_readandropping(t_list **buffer, int fd);
-int ft_joinlists(t_list **list, char new_char);
+void ft_readandropping(t_list **buffer, int fd);
+void ft_joinlists(t_list **list, char new_char);
 void free_list(t_list *list);
 #endif

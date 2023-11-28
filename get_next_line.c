@@ -1,40 +1,95 @@
 #include "get_next_line.h"
 
-
-char *ft_newline(t_list buffer, int fd)
+char *ft_dropline(t_list **buffer)
 {
-    int char_read;
-    char *cutline;
-    char *linefull;
-
-    char_read = 0;
-    linefull = NULL;
-    while (!ft_strrchr(cutline, '\n'))
+    int len;
+    int i;
+    char *formline;
+    t_list *temp;
+    
+    len = 0;
+    temp = *buffer;
+    while (temp)
     {
-        cutline = malloc(BUFFER_SIZE + 1);
-        if(!cutline)
-            return NULL;
-        
-        char_read = read(fd, cutline, BUFFER_SIZE);
-        if(char_read < 0)
-            free(cutline);
-            return NULL;
-        cutline[char_read] = '\0';
-        linefull = ft_strjoin(linefull, cutline);
-		free(cutline);
+        len++;
+        temp = temp -> next;
     }
-    return(linefull);
+    formline = malloc(len + 1);
+    if(!formline)
+        return (NULL);
+    i = 0;
+    while (*buffer)
+    {
+        printf("%c\n", (*buffer)->c);
+        formline[i] = (*buffer)->c;
+        i++;
+        temp = *buffer;
+        *buffer = (*buffer)->next;
+        free(temp);
+    }
+    formline[i] = '\0';
+    return(formline);
 }
 
 
+
+void ft_joinlists(t_list **list, char new_char)
+{
+    t_list *new_node;
+    t_list *last_node;
+
+    last_node = ft_lstlast(*list);
+    new_node = malloc(sizeof(t_list));
+    if(!new_node)
+        return ;
+    if(!last_node)
+        *list = new_node;
+    else
+    {
+        last_node->next = new_node;
+    }
+    new_node->c = new_char;
+    new_node->next = NULL;
+}
+
+void ft_readandropping(t_list **list, int fd)
+{
+    char buffer[BUFFER_SIZE + 1];
+    int bytes_read;
+    int i;
+
+    bytes_read = 1;
+    while (bytes_read > 0)
+    {
+        bytes_read = read(fd, buffer, BUFFER_SIZE);
+        if(bytes_read < 0)
+        {
+            return ;
+        }
+        i = 0;
+        while (buffer[i])
+        {   
+           if(buffer[i] == '\n')
+            {
+                ft_joinlists(list, buffer[i]);
+                return ;
+            }
+            ft_joinlists(list, buffer[i]);
+            i++;
+        }
+    }
+}
+
 char *get_next_line(int fd)
 {   
-    static s_list *buffer;
+    static t_list *buffer;
     char *line;
     line = NULL;
     if(fd < 0 || BUFFER_SIZE <= 0 || read(fd, &buffer, 0) < 0)
         return (NULL);
-    line = ft_newline(buffer, fd); 
+    ft_readandropping(&buffer, fd);
+    line = ft_dropline(&buffer);
+    printf("%s\n", line);
     return (line);
 }
 

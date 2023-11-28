@@ -8,7 +8,7 @@
 
 typedef struct s_list{
     char c;
-    struct s_list next;
+    struct s_list *next;
 } t_list;
 
 
@@ -19,8 +19,8 @@ typedef struct s_list{
 #include <string.h>
 
 char    *get_next_line(int fd);
-char	*ft_strrchr(const char *s, int c); // função que irá achar o '\n' QUEBRA DE LINHA SEARCHING
-char	*ft_strjoin(char const *s1, char const *s2);
-int     ft_strlen(const char *s);
-char *ft_newline(t_list buffer, int fd);
+char *ft_dropline(t_list **buffer);
+t_list	*ft_lstlast(t_list *lst);
+void ft_readandropping(t_list **buffer, int fd);
+void ft_joinlists(t_list **list, char new_char);
 #endif

@@ -1,26 +1,19 @@
 #include "get_next_line.h"
 
-char *ft_dropline(t_list **buffer)
+char *ft_dropline(t_list **buffer, int totalchars)
 {
     int len;
     int i;
     char *formline;
     t_list *temp;
     
-    len = 0;
-    temp = *buffer;
-    while (temp)
-    {
-        len++;
-        temp = temp -> next;
-    }
-    formline = malloc(len + 1);
+    formline = malloc(totalchars + 1);
     if(!formline)
         return (NULL);
     i = 0;
     while (*buffer)
     {
-        printf("%c\n", (*buffer)->c);
+        //printf("%c\n", (*buffer)->c);
         formline[i] = (*buffer)->c;
         i++;
         temp = *buffer;
@@ -33,7 +26,7 @@ char *ft_dropline(t_list **buffer)
 
 
 
-void ft_joinlists(t_list **list, char new_char)
+int ft_joinlists(t_list **list, char new_char)
 {
     t_list *new_node;
     t_list *last_node;
@@ -41,7 +34,7 @@ void ft_joinlists(t_list **list, char new_char)
     last_node = ft_lstlast(*list);
     new_node = malloc(sizeof(t_list));
     if(!new_node)
-        return ;
+        return 0;
     if(!last_node)
         *list = new_node;
     else
@@ -50,47 +43,60 @@ void ft_joinlists(t_list **list, char new_char)
     }
     new_node->c = new_char;
     new_node->next = NULL;
+    return(1);
 }
 
-void ft_readandropping(t_list **list, int fd)
+int ft_readandropping(t_list **list, int fd)
 {
     char buffer[BUFFER_SIZE + 1];
     int bytes_read;
-    int i;
+    int total_characters = 0;  // Adicione esta variável
 
     bytes_read = 1;
-    while (bytes_read > 0)
+    while ((bytes_read = read(fd, buffer, BUFFER_SIZE) > 0))
     {
-        bytes_read = read(fd, buffer, BUFFER_SIZE);
-        if(bytes_read < 0)
+        int i = 0;
+        while (buffer[i] && i < BUFFER_SIZE)
         {
-            return ;
-        }
-        i = 0;
-        while (buffer[i])
-        {   
-           if(buffer[i] == '\n')
+            total_characters += ft_joinlists(list, buffer[i]);
+            if(total_characters == 0)
             {
-                ft_joinlists(list, buffer[i]);
-                return ;
+                return 0;
             }
-            ft_joinlists(list, buffer[i]);
+            if (buffer[i] == '\n')
+            {   
+                return 1;
+            }
+            printf("%i\n", total_characters);
             i++;
         }
+        
     }
+    if (bytes_read < 0)
+    {
+        return 0;
+    }
+    return(total_characters);
 }
 
+
 char *get_next_line(int fd)
-{   
+{
     static t_list *buffer;
     char *line;
+    int totalchars;
+
     line = NULL;
-    if(fd < 0 || BUFFER_SIZE <= 0 || read(fd, &buffer, 0) < 0)
-        return (NULL);
-    ft_readandropping(&buffer, fd);
-    line = ft_dropline(&buffer);
-    printf("%s\n", line);
-    return (line);
+    if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, &buffer, 0) < 0)
+        return NULL;
+
+    totalchars = ft_readandropping(&buffer, fd);
+    if (totalchars > 0)
+    {
+        line = ft_dropline(&buffer, totalchars);
+        free_list(buffer);
+    }
+    return line;
 }
 
 int main(void)
@@ -100,6 +106,5 @@ int main(void)
 
     fd = open("arquivo.txt", O_RDONLY);
     line = get_next_line(fd);
-    free(line);
-    printf("%s\n", line);
+    printf("%s", line);
 }

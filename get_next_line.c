@@ -63,19 +63,15 @@ void ft_readandropping(t_list **list, int fd)
     {   
         bytes_read = read(fd, buffer, BUFFER_SIZE);
         if(bytes_read < 0)
-        {
             return ;
-        }
-        i = 1;
-        while (buffer[i] && i <= BUFFER_SIZE)
+        i = 0;
+        while (i < bytes_read)
         {
             ft_joinlists(list, buffer[i]);
             if(buffer[i] == '\n')
             {
-                printf("Ele encontrou o barra aqui: %i\n", i);
                 return ;
             }
-            printf("%i\n", i);
             i++;
         }
     }
@@ -90,6 +86,7 @@ char *get_next_line(int fd)
         return (NULL);
     ft_readandropping(&buffer, fd);
     line = ft_dropline(&buffer);
+    free_list(buffer);
     return (line);
 }
 

@@ -18,16 +18,19 @@ char *ft_dropline(t_list **buffer)
     if(!formline)
         return (NULL);
     i = 0;
-    while (*buffer)
+    while ((*buffer)->c != '\n')
     {
-        //printf("%c\n", (*buffer)->c);
         formline[i] = (*buffer)->c;
         i++;
         temp = *buffer;
         *buffer = (*buffer)->next;
         free(temp);
     }
+    formline[i++] = (*buffer)->c;
     formline[i] = '\0';
+    temp = *buffer;
+    *buffer = (*buffer)->next;
+    free(temp);
     return(formline);
 }
 
@@ -68,10 +71,6 @@ void ft_readandropping(t_list **list, int fd)
         while (i < bytes_read)
         {
             ft_joinlists(list, buffer[i]);
-            if(buffer[i] == '\n')
-            {
-                return ;
-            }
             i++;
         }
     }
@@ -86,7 +85,6 @@ char *get_next_line(int fd)
         return (NULL);
     ft_readandropping(&buffer, fd);
     line = ft_dropline(&buffer);
-    free_list(buffer);
     return (line);
 }
 
@@ -96,6 +94,10 @@ int main(void)
     int fd;
 
     fd = open("arquivo.txt", O_RDONLY);
-    line = get_next_line(fd);
-    printf("%s", line);
+    while ((line = get_next_line(fd)) != NULL)
+    {
+        printf("%s", line);
+        free(line);
+    }
+    close(fd);
 }
